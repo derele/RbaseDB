@@ -1,0 +1,12 @@
+Package: RbaseDB
+Title: SNP effects based on annotation
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Emanuel",
+           family = "Heitlinger",
+           role = c("aut", "cre"),
+           email = "emanuelheitlinger@gmail.com")
+Description: Genetic (DNA) sequence is annotated with effects of a change in each nucleotide base. This allows to query: what if at position X there would be a change to [A|G|C|T]?
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
