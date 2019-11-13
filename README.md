@@ -35,7 +35,7 @@ Genetic (DNA) sequence is annotated with effects of a change in each nucleotide 
 -W: all changes are unknown # EH added 08/23/2011
 
 |      |  a       |    g       |    c       |    t
-|      |          |            |            |
+|------|----------|------------|------------|----------
 | a    |aaa K OBF |  aga R QBF |  aca T ABN |  ata I ABJ
 |      |aag K OBF |  agg R KBF |  acg T ABN |  atg M ABC
 |      |aac N ABP |  agc S ABP |  acc T ABN |  atc I ABJ
