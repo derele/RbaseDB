@@ -1,16 +1,70 @@
 library(rtracklayer)
 library(ShortRead)
+library(Biostrings)
+library(BSgenome)
+
+## you know what I give up on Bioc and try to go tidy for bio too...
+library(biobroom)
+library(tidyverse)
 
 
-EfalGenome <- readFasta("/home/ele/ToxoDB-46_EfalciformisBayerHaberkorn1970_Genome.fasta")
+## to create the example data
+EfalGenome <- readDNAStringSet("/home/ele/ToxoDB-46_EfalciformisBayerHaberkorn1970_Genome.fasta")
 EfalAnnotation <- import.gff("/home/ele/ToxoDB-46_EfalciformisBayerHaberkorn1970.gff")
+
+## EfalAnnotationTxDb <- makeTxDbFromGFF("/home/ele/ToxoDB-46_EfalciformisBayerHaberkorn1970.gff")
 
 save(EfalGenome, file="data/EfalGenome.rda", compress='xz')
 save(EfalAnnotation, file="data/EfalAnnotation.rda", compress='xz')
 
-if(!exists("VCF")){
-    source("scripts/3_SNP_analysis.R")
-}
+
+## From the original transcriptome work on A. crassus
+## if(!exists("VCF")){
+##     source("scripts/3_SNP_analysis.R")
+## }
+
+
+
+EfalGenomeNamed <- EfalGenome
+names(EfalGenomeNamed) <- gsub("(.*?) .*", "\\1", names(EfalGenomeNamed))
+
+EfalCDS <- subset(EfalAnnotation, type%in%"CDS")
+
+EfalCDSseq <- getSeq(EfalGenomeNamed, EfalCDS)
+EfalCDSParented <- as.factor(unlist(EfalCDS@elementMetadata$Parent))
+EfalCDSStrand <- as.factor(EfalCDS@strand)
+
+EfalCDSTranscriptStrands <- by(EfalCDSStrand, EfalCDSParented, function(x) unique(as.character(x)))
+
+EfalCDSTranscripts <- by(EfalCDSseq, EfalCDSParented, function(x) do.call(c, x))
+
+transONT <- lapply(seq_along(EfalCDSTranscriptStrands), function(i) {
+    if(EfalCDSTranscriptStrands[[i]]=="-"){
+       transcript <- reverseComplement(EfalCDSTranscripts[[i]])
+    } else {
+       transcript <- EfalCDSTranscripts[[i]]
+    }
+    tran <- as.character(transcript)
+    codons <- substring(tran,
+                        seq(1, nchar(tran), by=3),
+                        seq(3, nchar(tran), by=3))
+    ont <- base.ontology.encode(tolower(codons))
+    otl <- paste0(ont, collapse="")
+    if(EfalCDSTranscriptStrands[[i]]=="-"){
+        reverse(otl)
+    } else {
+        otl
+    }
+})
+
+
+## That's a complete mess...
+## we'd now need to split again by cds then replace the cds in the genome...
+## by(EfalCDSseq, EfalCDSParented, function (x) cumsum(width(x)))
+
+cat("foo")
+
+cat("bar")
 
 ## ## BASE ONTOLOGY
 ## #
@@ -131,17 +185,21 @@ base.ontology.encode <- function(x){
         "tta" = "GRF",
         "ttg" = "GLF",
         "ttc" = "ABP",
-        "ttt" = "ABP"
-        );
+        "ttt" = "ABP",
+        ##
+        ## bad strings
+        "x"="W",
+        "xx"="WW",
+        "xxx"="WWW"
+    );
     
-    ## # wrap in a control function for iupac and other "bad"
-    ## # bases
-    if (nchar(gsub("[bdefhijklmnopqrsuvwxyz]", "", x, ignore.case=TRUE)) != 3){
-        return (paste(rep("W", times = nchar(x)), collapse=""))
-    }
-    else {
-        return(base.ontology.encode.string[x])
-    }
+    ## a replace for iupac and other "bad" bases
+    tr <- function (y) paste0(rep("x", times=nchar(y)), collapse="")
+    offenders <- which(nchar(gsub("[^agct]", "", x))!=3)
+    x[offenders] <- sapply(x[offenders], tr)
+    ## do the magic
+    x <- unlist(x)
+    base.ontology.encode.string[x]
 }
   
 base.ontology.decode = list(
@@ -208,23 +266,6 @@ base.ontology.decode = list(
   );
 
 
-## read the gff of protein annotation
-library(rtracklayer)
-
-transcripts <- read.ESeq("/data/Parascaris/Illumina_454_Trinity_RSEM-filtered.fasta")
-names(transcripts) <- gsub(" .*$", "", names(transcripts))
-
-all.gff <- import.gff("/data/Parascaris/protAnnot/Illumina_454_Trinity_RSEM-filtered.fasta.transdecoder.gff3")
-
-cds.gff <- subset(all.gff, all.gff$type=="CDS")
-
-cds.gff.df <- as.data.frame(cds.gff)
-
-cds.gff.df <- merge(cds.gff.df, as.data.frame(transcripts[TRUE]),
-                    by.x="seqnames",
-                    by.y=0)
-names(cds.gff.df)[ncol(cds.gff.df)] <- "transcript"
-
 get.coding.seq <- function(transcript, start, end, strand){
     coding <- tolower(substr(transcript, as.numeric(start),
                              as.numeric(end)))
@@ -234,7 +275,7 @@ get.coding.seq <- function(transcript, start, end, strand){
                 "\tend:", end, "\tstrand:", strand)
     }
     if(strand%in%"-"){
-        coding <- revcom(coding) # revcom thins on the minus strand
+        coding <- revcom(coding) # revcom  on the minus strand
     }
     return(coding)
 }

@@ -16,7 +16,9 @@ Depends:
 Imports:
     ShortRead (>= 1.32.0),
     rtracklayer (>= 1.40.0),
-    Biostrings (>= 2.52.0)
+    Biostrings (>= 2.52.0),
+    biobroom (>= 1.16.0),
+    tidyverse (>= 1.2.1)
 Suggests:
     knitr,
     rmarkdown
