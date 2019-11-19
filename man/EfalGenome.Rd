@@ -4,7 +4,7 @@
 \name{EfalGenome}
 \alias{EfalGenome}
 \title{Genome sequence of Eimeria falciformis}
-\format{An object of class \code{ShortRead} of length 753.}
+\format{An object of class \code{DNAStringSet} of length 753.}
 \source{
 \url{https://toxodb.org/common/downloads/Current_Release/EfalciformisBayerHaberkorn1970/fasta/data/ToxoDB-46_EfalciformisBayerHaberkorn1970_Genome.fasta}
 }
