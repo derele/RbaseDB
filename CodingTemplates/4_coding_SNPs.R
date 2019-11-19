@@ -1,5 +1,12 @@
-library(ggplot2)
 library(rtracklayer)
+library(ShortRead)
+
+
+EfalGenome <- readFasta("/home/ele/ToxoDB-46_EfalciformisBayerHaberkorn1970_Genome.fasta")
+EfalAnnotation <- import.gff("/home/ele/ToxoDB-46_EfalciformisBayerHaberkorn1970.gff")
+
+save(EfalGenome, file="data/EfalGenome.rda", compress='xz')
+save(EfalAnnotation, file="data/EfalAnnotation.rda", compress='xz')
 
 if(!exists("VCF")){
     source("scripts/3_SNP_analysis.R")

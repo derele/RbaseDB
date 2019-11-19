@@ -10,3 +10,13 @@ Description: Genetic (DNA) sequence is annotated with effects of a change in eac
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.0.0
+Depends:
+    R (>= 3.5.0)
+Imports:
+    ShortRead (>= 1.32.0),
+    rtracklayer (>= 1.40.0),
+Suggests:
+    knitr,
+    rmarkdown
+
